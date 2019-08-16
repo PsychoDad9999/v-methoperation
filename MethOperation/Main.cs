@@ -63,7 +63,9 @@ namespace MethOperation
         #region Methods
         public static void Save()
         {
-            File.WriteAllText(Path.Combine("scripts", "methoperation_labs.xml"), MethLabs.Serialize());
+            string filePath = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "mod_methoperation"), "methoperation_labs.xml");
+        
+            File.WriteAllText(filePath, MethLabs.Serialize());
         }
         #endregion
 
@@ -98,9 +100,10 @@ namespace MethOperation
                     config.SetValue("PRICES", "STAFF_UPGRADE", StaffUpgradePrice);
                     config.SetValue("PRICES", "SECURITY_UPGRADE", SecurityUpgradePrice);
                     config.SetValue("PRICES", "PRODUCT_VALUE", ProductValue);
-                }
 
-                config.Save();
+                    // this will cause an exception when writing to Program Files folder
+                    config.Save();
+                }                
             }
             catch (Exception e)
             {
@@ -161,18 +164,23 @@ namespace MethOperation
             if (!MethLabsLoaded && !Game.IsLoading && Game.Player.CanControlCharacter)
             {
                 try
-                {
-                    string labsFile = Path.Combine("scripts", "methoperation_labs.xml");
-                    if (File.Exists(labsFile))
-                    {
-                        // Loading MP maps is required since the lab is a GTA Online interior
-                        Function.Call(Hash._LOAD_MP_DLC_MAPS);
+                {     
+                    string labsFile = Path.Combine(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "mod_methoperation"), "methoperation_labs.xml");
 
+                    if (!File.Exists(labsFile))
+                    {
+                        string backupLabsFile = Path.Combine("scripts", "methoperation_labs.xml");
+                        
+                        Directory.CreateDirectory(Path.GetDirectoryName(labsFile));
+                        File.Copy(backupLabsFile, labsFile);                        
+                    }
+
+
+                    if (File.Exists(labsFile))
+                    {                        
                         MethLabs = XmlUtil.Deserialize<List<Lab>>(File.ReadAllText(labsFile));
                         foreach (Lab lab in MethLabs) lab.CreateEntities();
-
-                        LabInteriorID = Function.Call<int>(Hash.GET_INTERIOR_AT_COORDS_WITH_TYPE, Constants.MethLabLaptop.X, Constants.MethLabLaptop.Y, Constants.MethLabLaptop.Z, "bkr_biker_dlc_int_ware01");
-
+                        
                         ManagementBlip = World.CreateBlip(Constants.MethLabLaptop);
                         ManagementBlip.Alpha = 0;
                         ManagementBlip.Sprite = BlipSprite.Laptop;
@@ -444,6 +452,13 @@ namespace MethOperation
             ManagementBlip.Alpha = 255;
             ManagementMain.Clear();
 
+            // Loading MP maps is required since the lab is a GTA Online interior
+            Function.Call(Hash._LOAD_MP_DLC_MAPS);
+
+            LabInteriorID = Function.Call<int>(Hash.GET_INTERIOR_AT_COORDS_WITH_TYPE, Constants.MethLabLaptop.X, Constants.MethLabLaptop.Y, Constants.MethLabLaptop.Z, "bkr_biker_dlc_int_ware01");
+
+
+
             // Fancy stuff
             LaptopRTID = Util.SetupRenderTarget();
             IsLeaning = false;
@@ -580,6 +595,9 @@ namespace MethOperation
 
             foreach (Entity ent in MethLabEntities) ent?.Delete();
             MethLabEntities.Clear();
+
+            // Load Story Mode Interior
+            Function.Call(Hash._UNLOAD_MP_DLC_MAPS);
         }
         #endregion
 
