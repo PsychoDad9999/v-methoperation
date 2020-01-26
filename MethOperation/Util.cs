@@ -7,7 +7,7 @@ using MethOperation.Enums;
 namespace MethOperation
 {
     public static class Util
-    {
+    {       
         public static void DisplayHelpText(string message)
         {
             Function.Call(Hash._SET_TEXT_COMPONENT_FORMAT, "STRING");

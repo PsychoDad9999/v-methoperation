@@ -84,7 +84,7 @@ namespace MethOperation
                         _missionBlips.Add("vehicle", vehicleBlip);
                         _missionBlips.Add("deliveryPoint", deliveryBlip);
 
-                        Util.NotifyWithPicture("LJT", $"{Util.GetCharacterFromModel(_missionModel)}, a gang member posted about their supply truck online. Go to {World.GetZoneName(_objectiveCoords[0])} and take it, they won't even know!", "CHAR_LJT", 1);
+                        NotificationQueue.Add("LJT", $"{Util.GetCharacterFromModel(_missionModel)}, a gang member posted about their supply truck online. Go to {World.GetZoneName(_objectiveCoords[0])} and take it, they won't even know!", "CHAR_LJT", 1);
                         break;
                     }
 
@@ -109,12 +109,14 @@ namespace MethOperation
                         _missionBlips.Add("vehicle", vehicleBlip);
                         _missionBlips.Add("deliveryPoint", deliveryBlip);
 
-                        Util.NotifyWithPicture("LJT", $"{Util.GetCharacterFromModel(_missionModel)}, the buyer wants the product to be delivered to {World.GetZoneName(_objectiveCoords[1])}.", "CHAR_LJT", 1);
+                        NotificationQueue.Add("LJT", $"{Util.GetCharacterFromModel(_missionModel)}, the buyer wants the product to be delivered to {World.GetZoneName(_objectiveCoords[1])}.", "CHAR_LJT", 1);
                         break;
                     }
                 }
 
-                foreach (Lab lab in Main.MethLabs) lab.SetBlipVisible(false);
+                foreach (Lab lab in Main.MethLabs) 
+                    lab.SetBlipVisible(false);
+                
                 SetStage(MissionStage.GetInVehicle);
             }
         }
@@ -314,7 +316,7 @@ namespace MethOperation
         #region Event: Tick
         public void Mission_Tick(object sender, EventArgs e)
         {
-            if (IsActive)
+            if (IsActive && !Game.IsLoading)
             {
                 // Prevent the player from switching characters
                 Game.DisableControlThisFrame(2, Control.CharacterWheel);

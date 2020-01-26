@@ -7,6 +7,7 @@ using GTA.Native;
 using NativeUI;
 using MethOperation.Enums;
 using MethOperation.Classes;
+using System.Threading.Tasks;
 
 namespace MethOperation
 {
@@ -201,8 +202,18 @@ namespace MethOperation
             }
             #endregion
 
+            // process queued notifications
+            if (!NotificationQueue.IsEmpty())
+            {
+                if (!Game.IsLoading)
+                {
+                    NotificationQueue.ProcessAll();
+                }
+            }
+
             // No need to go further if in a mission
-            if (Mission.IsActive) return;
+            if (Mission.IsActive) 
+                return;           
 
             // Update player position
             int gameTime = Game.GameTime;
@@ -280,7 +291,8 @@ namespace MethOperation
                 }
 
                 // Disable some controls inside the interior
-                for (int i = 0; i < Constants.ControlsToDisable.Length; i++) Function.Call(Hash.DISABLE_CONTROL_ACTION, 2, Constants.ControlsToDisable[i], true);
+                for (int i = 0; i < Constants.ControlsToDisable.Length; i++) 
+                    Function.Call(Hash.DISABLE_CONTROL_ACTION, 2, Constants.ControlsToDisable[i], true);
             }
             else
             {
@@ -430,12 +442,17 @@ namespace MethOperation
         #region Event: Aborted
         public void Script_Aborted(object sender, EventArgs e)
         {
-            if (InsideMethLabIdx != -1) LeftMethLab.Invoke(InsideMethLabIdx, LabExitReason.ScriptExit);
+            if (InsideMethLabIdx != -1) 
+                LeftMethLab.Invoke(InsideMethLabIdx, LabExitReason.ScriptExit);
 
-            foreach (Entity ent in MethLabEntities) ent?.Delete();
+            foreach (Entity ent in MethLabEntities) 
+                ent?.Delete();
+
             MethLabEntities.Clear();
 
-            foreach (Lab lab in MethLabs) lab.DestroyEntities();
+            foreach (Lab lab in MethLabs) 
+                lab.DestroyEntities();
+            
             MethLabs.Clear();
 
             ManagementBlip?.Remove();
@@ -445,19 +462,19 @@ namespace MethOperation
             ManagementMenuPool = null;
         }
         #endregion
+   
 
         #region ScriptEvent: EnteredMethLab
         public void Script_EnteredMethLab(int labIndex)
         {
-            ManagementBlip.Alpha = 255;
-            ManagementMain.Clear();
-
             // Loading MP maps is required since the lab is a GTA Online interior
             Function.Call(Hash._LOAD_MP_DLC_MAPS);
 
+
             LabInteriorID = Function.Call<int>(Hash.GET_INTERIOR_AT_COORDS_WITH_TYPE, Constants.MethLabLaptop.X, Constants.MethLabLaptop.Y, Constants.MethLabLaptop.Z, "bkr_biker_dlc_int_ware01");
 
-
+            ManagementBlip.Alpha = 255;
+            ManagementMain.Clear();
 
             // Fancy stuff
             LaptopRTID = Util.SetupRenderTarget();
@@ -468,13 +485,16 @@ namespace MethOperation
             Function.Call(Hash.START_AUDIO_SCENE, "Biker_Warehouses_Meth_Scene");
 
             // Interior props and menu filling
-            for (int i = 0; i < Constants.InteriorProps.Length; i++) Function.Call(Hash._DISABLE_INTERIOR_PROP, LabInteriorID, Constants.InteriorProps[i]);
+            for (int i = 0; i < Constants.InteriorProps.Length; i++)
+            {
+                Function.Call(Hash._DISABLE_INTERIOR_PROP, LabInteriorID, Constants.InteriorProps[i]);
+            }
 
             if (MethLabs[labIndex].HasFlag(LabFlags.HasDoneSetup))
             {
                 int labProdTime = ProductionTime;
 
-                UIMenuItem upgradesMenuItem = new UIMenuItem("Upgrades", string.Empty);
+                UIMenuItem upgradesMenuItem = new UIMenuItem("Upgrades", String.Empty);
                 ManagementMain.BindMenuToItem(UpgradesMenu, upgradesMenuItem);
                 ManagementMain.AddItem(upgradesMenuItem);
 
@@ -593,7 +613,11 @@ namespace MethOperation
             LaptopRTID = -1;
             IsLeaning = false;
 
-            foreach (Entity ent in MethLabEntities) ent?.Delete();
+            foreach (Entity ent in MethLabEntities)
+            {
+                ent?.Delete();
+            }
+
             MethLabEntities.Clear();
 
             // Load Story Mode Interior
